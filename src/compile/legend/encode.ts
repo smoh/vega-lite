@@ -1,11 +1,12 @@
 import {Channel, COLOR, NonspatialScaleChannel, SHAPE} from '../../channel';
 import {FieldDef, isFieldDef, isValueDef} from '../../fielddef';
 import {AREA, BAR, CIRCLE, FILL_STROKE_CONFIG, LINE, POINT, SQUARE, TEXT, TICK} from '../../mark';
-import {ScaleType} from '../../scale';
-import {TEMPORAL} from '../../type';
+import {NOMINAL, ORDINAL, TEMPORAL} from '../../type';
 import {extend, keys, without} from '../../util';
 import {VgValueRef} from '../../vega.schema';
-import {applyMarkConfig, timeFormatExpression} from '../common';
+
+import {ScaleType} from '../../scale';
+import {applyMarkConfig, numberFormat, timeFormatExpression} from '../common';
 import * as mixins from '../mark/mixins';
 import {UnitModel} from '../unit';
 
@@ -82,6 +83,20 @@ export function labels(fieldDef: FieldDef<string>, labelsSpec: any, model: UnitM
         signal: timeFormatExpression('datum.value', fieldDef.timeUnit, legend.format, config.legend.shortTimeLabels, config.timeFormat, isUTCScale)
       }
     }, labelsSpec || {});
+  } else if ((fieldDef.type === NOMINAL || fieldDef.type === ORDINAL) && legend.format) {
+    if (fieldDef['formatType'] === 'number') {
+      labelsSpec = extend({
+        text: {
+          signal: `format(${fieldDef.field}, '${numberFormat(fieldDef, legend.format, config)}')`
+        }
+      }, labelsSpec || {});
+    } else if (fieldDef['formatType']) {
+      labelsSpec = extend({
+        text: {
+          signal: timeFormatExpression('datum.value', fieldDef.timeUnit, legend.format, config.legend.shortTimeLabels, config.timeFormat, fieldDef['formatType'] === 'utc')
+        }
+      }, labelsSpec || {});
+    }
   }
 
   labels = extend(labels, labelsSpec || {});

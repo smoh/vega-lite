@@ -124,6 +124,7 @@
     ],
     "axes": [
         {
+            "format": "%B of %Y",
             "scale": "x",
             "orient": "bottom",
             "tickCount": 5,
@@ -149,6 +150,7 @@
             }
         },
         {
+            "format": "%B of %Y",
             "scale": "x",
             "domain": false,
             "grid": true,

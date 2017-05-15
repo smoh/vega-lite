@@ -5,7 +5,7 @@ import {ScaleType} from '../../scale';
 import {NOMINAL, ORDINAL, TEMPORAL} from '../../type';
 import {contains, extend, keys} from '../../util';
 import {AxisOrient, VgAxis} from '../../vega.schema';
-import {timeFormatExpression} from '../common';
+import {numberFormat, timeFormatExpression} from '../common';
 import {UnitModel} from '../unit';
 
 export function labels(model: UnitModel, channel: SpatialScaleChannel, specifiedLabelsSpec: any, def: Partial<VgAxis>) {
@@ -27,8 +27,17 @@ export function labels(model: UnitModel, channel: SpatialScaleChannel, specified
     labelsSpec.text =  {
       signal: timeFormatExpression('datum.value', fieldDef.timeUnit, axis.format, config.axis.shortTimeLabels, config.timeFormat, isUTCScale)
     };
+  } else if ((fieldDef.type === NOMINAL || fieldDef.type === ORDINAL) && axis.format) {
+    if (fieldDef['formatType'] === 'number') {
+      labelsSpec.text = {
+        signal: `format(${fieldDef.field}, '${numberFormat(fieldDef, axis.format, config)}')`
+      };
+    } else if (fieldDef['formatType']) {
+      labelsSpec.text = {
+        signal: timeFormatExpression('datum.value', fieldDef.timeUnit, axis.format, config.legend.shortTimeLabels, config.timeFormat, fieldDef['formatType'] === 'utc')
+      };
+    }
   }
-
   // Label Angle
   const angle = labelAngle(axis, channel, fieldDef);
   if (angle) {

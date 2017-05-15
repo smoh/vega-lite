@@ -61,6 +61,8 @@ export interface Axis extends VgAxisBase, Guide {
    * Optional mark definitions for custom axis encoding.
    */
   encoding?: AxisEncoding;
+
+  formatType?: 'number' | 'time' | 'utc';
 }
 
 export interface AxisEncoding {

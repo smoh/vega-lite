@@ -4,8 +4,8 @@ import {assert} from 'chai';
 import {COLOR, SHAPE} from '../../../src/channel';
 import * as encode from '../../../src/compile/legend/encode';
 import {TimeUnit} from '../../../src/timeunit';
-import {TEMPORAL} from '../../../src/type';
-import {parseUnitModelWithScale} from '../../util';
+import {NOMINAL, ORDINAL, TEMPORAL} from '../../../src/type';
+import {parseUnitModel, parseUnitModelWithScale} from '../../util';
 
 describe('compile/legend', function() {
   describe('encode.symbols', function() {
@@ -70,6 +70,31 @@ describe('compile/legend', function() {
       const label = encode.labels(fieldDef, {}, model, COLOR);
       const expected = `'Q' + quarter(datum.value)`;
       assert.deepEqual(label.text.signal, expected);
+    });
+
+     it('should return correct expression when you want to format the legend as integers', () => {
+      const model = parseUnitModelWithScale({
+        mark: "point",
+        encoding: {
+          x: {field: "a", type: "temporal"},
+          color: {field: "a", type: "ordinal", formatType: "number", legend: {format: "d"}}
+        }
+      });
+      const fieldDef = {field: 'a', type: ORDINAL, formatType: "number", legend: {format: "d"}};
+      const label = encode.labels(fieldDef, {}, model, COLOR);
+      assert.deepEqual(label, {text: {signal: `format(a, 'undefined')`}});
+    });
+
+    it('should return correct expression when you want to format the legend in a time format', () => {
+      const model = parseUnitModelWithScale({
+        mark: "point",
+        encoding: {
+          x: {field: "a", type: "temporal"},
+          color: {field: "a", type: "nominal", timeUnit: "quarter", formatType: "time", legend: {format: "%y"}}}
+      });
+      const fieldDef = {field: 'a', type: NOMINAL, formatType: "time", legend: {format: "%y"}};
+      const label = encode.labels(fieldDef, {}, model, COLOR);
+      assert.deepEqual(label, {text: {signal: 'timeFormat(datum.value, \'%y\')'}});
     });
   });
 });

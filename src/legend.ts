@@ -37,6 +37,8 @@ export interface Legend extends VgLegendBase, Guide {
    * @minimum 0
    */
   zindex?: number;
+
+  formatType?: 'number' | 'time' | 'utc';
 }
 
 export type LegendEncoding = {

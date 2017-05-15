@@ -1,4 +1,4 @@
-import {Channel, TEXT} from '../channel';
+import {Channel, COLUMN, ROW, TEXT, TOOLTIP} from '../channel';
 import {CellConfig, Config} from '../config';
 import {field, FieldDef, isScaleFieldDef, OrderFieldDef} from '../fielddef';
 import * as log from '../log';
@@ -7,8 +7,8 @@ import {ScaleType} from '../scale';
 import {isConcatSpec, isFacetSpec, isLayerSpec, isRepeatSpec, isUnitSpec, LayoutSize, Spec} from '../spec';
 import {TimeUnit} from '../timeunit';
 import {formatExpression} from '../timeunit';
-import {QUANTITATIVE} from '../type';
-import {isArray} from '../util';
+import {QUANTITATIVE, TEMPORAL} from '../type';
+import {duplicate, isArray} from '../util';
 import {VgEncodeEntry, VgSort} from '../vega.schema';
 import {ConcatModel} from './concat';
 import {FacetModel} from './facet';
@@ -77,7 +77,34 @@ export function getMarkConfig<P extends keyof MarkConfig>(prop: P, mark: Mark, c
   return config.mark[prop];
 }
 
-export function formatSignalRef(fieldDef: FieldDef<string>, specifiedFormat: string, expr: 'datum' | 'parent', config: Config, useBinRange?: boolean) {
+export function formatSignalRef(fieldDef: FieldDef<string>, specifiedFormat: string, expr: 'datum' | 'parent', config: Config, formatType: 'number' | 'time' | 'utc', channel: Channel, useBinRange?: boolean) {
+  if (channel === TEXT || channel === ROW || channel === COLUMN || channel === TOOLTIP) {
+    if (specifiedFormat) {
+      if (formatType === 'number') {
+        if (fieldDef.type === 'quantitative') {
+          const format = numberFormat(fieldDef, specifiedFormat, config);
+          if (fieldDef.bin) {
+            if (useBinRange) {
+              // For bin range, no need to apply format as the formula that creates range already include format
+              return {signal: field(fieldDef, {expr, binSuffix: 'range'})};
+            } else {
+              return {
+                signal: `format(${field(fieldDef, {expr, binSuffix: 'start'})}, '${format}')+'-'+format(${field(fieldDef, {expr, binSuffix: 'end'})}, '${format}')`
+              };
+            }
+          } else {
+            return {
+              signal: `format(${field(fieldDef, {expr})}, '${format}')`
+            };
+          }
+        }
+      } else {
+        return {
+          signal: timeFormatExpression(field(fieldDef, {expr}), fieldDef.timeUnit, specifiedFormat, config.text.shortTimeLabels, config.timeFormat, formatType === 'utc')
+        };
+      }
+    }
+  }
   if (fieldDef.type === 'quantitative') {
     const format = numberFormat(fieldDef, specifiedFormat, config);
     if (fieldDef.bin) {
@@ -99,9 +126,8 @@ export function formatSignalRef(fieldDef: FieldDef<string>, specifiedFormat: str
     return {
       signal: timeFormatExpression(field(fieldDef, {expr}), fieldDef.timeUnit, specifiedFormat, config.text.shortTimeLabels, config.timeFormat, isUTCScale)
     };
-  } else {
-    return {signal: field(fieldDef, {expr})};
   }
+  return {signal: field(fieldDef, {expr})};
 }
 
 /**
@@ -110,7 +136,7 @@ export function formatSignalRef(fieldDef: FieldDef<string>, specifiedFormat: str
  * @param format explicitly specified format
  */
 export function numberFormat(fieldDef: FieldDef<string>, specifiedFormat: string, config: Config) {
-  if (fieldDef.type === QUANTITATIVE) {
+  if (fieldDef.type === QUANTITATIVE || fieldDef.type === TEMPORAL) {
     // add number format for quantitative type only
 
     // Specified format in axis/legend has higher precedence than fieldDef.format
@@ -138,12 +164,8 @@ export function numberFormatExpr(field: string, specifiedFormat: string, config:
 export function timeFormatExpression(field: string, timeUnit: TimeUnit, format: string, shortTimeLabels: boolean, timeFormatConfig: string, isUTCScale: boolean): string {
   if (!timeUnit || format) {
     // If there is not time unit, or if user explicitly specify format for axis/legend/text.
-    const _format = format || timeFormatConfig; // only use config.timeFormat if there is no timeUnit.
-    if (isUTCScale) {
-      return `utcFormat(${field}, '${_format}')`;
-    } else {
-      return `timeFormat(${field}, '${_format}')`;
-    }
+    // only use config.timeFormat if there is no timeUnit.
+    return `${isUTCScale ? 'utc' : 'time'}Format(${field}, '${format || timeFormatConfig}')`;
   } else {
     return formatExpression(timeUnit, field, shortTimeLabels, isUTCScale);
   }

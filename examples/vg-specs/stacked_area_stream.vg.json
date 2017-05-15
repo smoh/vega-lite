@@ -208,6 +208,7 @@
     "axes": [
         {
             "domain": false,
+            "format": "%Y",
             "tickSize": 0,
             "scale": "x",
             "labelOverlap": true,
@@ -227,6 +228,7 @@
         },
         {
             "domain": false,
+            "format": "%Y",
             "tickSize": 0,
             "scale": "x",
             "grid": true,
