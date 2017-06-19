@@ -25,7 +25,7 @@ import {FacetModel} from '../facet';
 import {Model} from '../model';
 import {SELECTION_DOMAIN} from '../selection/selection';
 import {UnitModel} from '../unit';
-import {ScaleComponentIndex} from './component';
+import {ScaleComponentIndex, ScaleDomainComponent} from './component';
 
 export function parseScaleDomain(model: Model) {
   if (model instanceof UnitModel) {
@@ -73,7 +73,7 @@ function parseNonUnitScaleDomain(model: Model) {
   keys(localScaleComponents).forEach((channel: ScaleChannel) => {
     // FIXME: Arvind -- Please revise logic for merging selectionDomain / domainRaw
 
-    let domains: VgDomain[];
+    let domains: ScaleDomainComponent[];
 
     for (const child of model.children) {
       const childComponent = child.component.scales[channel];
@@ -132,7 +132,7 @@ function normalizeUnaggregatedDomain(domain: Domain, fieldDef: FieldDef<string>,
 }
 
 // FIXME: Domoritz --  please change this to return VgDomain[] and union one at the end in assemble
-export function parseDomainForChannel(model: UnitModel, channel: ScaleChannel): VgDomain {
+export function parseDomainForChannel(model: UnitModel, channel: ScaleChannel): ScaleDomainComponent {
   const scaleType = model.getScaleComponent(channel).get('type');
 
   const domain = normalizeUnaggregatedDomain(model.scaleDomain(channel), model.fieldDef(channel), scaleType, model.config.scale);
@@ -160,7 +160,7 @@ export function parseDomainForChannel(model: UnitModel, channel: ScaleChannel): 
   return parseSingleChannelDomain(scaleType, domain, model, channel);
 }
 
-function parseSingleChannelDomain(scaleType: ScaleType, domain: Domain, model: UnitModel, channel: ScaleChannel | 'x2' | 'y2'): VgDomain {
+function parseSingleChannelDomain(scaleType: ScaleType, domain: Domain, model: UnitModel, channel: ScaleChannel | 'x2' | 'y2'): ScaleDomainComponent {
   const fieldDef = model.fieldDef(channel);
 
   if (domain && domain !== 'unaggregated' && !isSelectionDomain(domain)) { // explicit value
