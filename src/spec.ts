@@ -128,8 +128,7 @@ export type LayerSpec = GenericLayerSpec<UnitSpec>;
 export interface GenericFacetSpec<U extends GenericUnitSpec<any, any>> extends BaseSpec {
   facet: Facet<Field>;
 
-  // TODO: support facet of facet
-  spec: GenericLayerSpec<U> | GenericRepeatSpec<U> | U;
+  spec: GenericSpec<U>;
 
   resolve?: ResolveMapping;
 }
@@ -139,8 +138,7 @@ export type FacetSpec = GenericFacetSpec<UnitSpec>;
 export interface GenericRepeatSpec<U extends GenericUnitSpec<any, any>> extends BaseSpec {
   repeat: Repeat;
 
-  // TODO: add GenericFacetSpec<U>
-  spec: GenericRepeatSpec<U> | GenericLayerSpec<U> | U;
+  spec: GenericSpec<U>;
 
   resolve?: ResolveMapping;
 }
@@ -148,15 +146,13 @@ export interface GenericRepeatSpec<U extends GenericUnitSpec<any, any>> extends 
 export type RepeatSpec = GenericRepeatSpec<UnitSpec>;
 
 export interface GenericVConcatSpec<U extends GenericUnitSpec<any, any>> extends BaseSpec {
-  // TODO: add GenericFacetSpec<U> | GenericfacetSpec<U>
-  vconcat: (GenericLayerSpec<U> | GenericRepeatSpec<U> | U)[];
+  vconcat: (GenericSpec<U>)[];
 
   resolve?: ResolveMapping;
 }
 
 export interface GenericHConcatSpec<U extends GenericUnitSpec<any, any>> extends BaseSpec {
-  // TODO: add GenericFacetSpec<U> | GenericfacetSpec<U>
-  hconcat: (GenericLayerSpec<U> | GenericRepeatSpec<U> | U)[];
+  hconcat: (GenericSpec<U>)[];
 
   resolve?: ResolveMapping;
 }
@@ -232,33 +228,11 @@ export function normalize(spec: TopLevelExtendedSpec, config: Config): Spec {
   throw new Error(log.message.INVALID_SPEC);
 }
 
-function normalizeNonFacet(spec: GenericLayerSpec<CompositeUnitSpec> | GenericRepeatSpec<CompositeUnitSpec> | CompositeUnitSpec, config: Config) {
-  if (isLayerSpec(spec)) {
-    return normalizeLayer(spec, config);
-  }
-  if (isRepeatSpec(spec)) {
-    return normalizeRepeat(spec, config);
-  }
-  return normalizeNonFacetUnit(spec, config);
-}
-
-
-function normalizeNonFacetWithRepeat(spec: GenericLayerSpec<CompositeUnitSpec> | GenericRepeatSpec<CompositeUnitSpec> | CompositeUnitSpec, config: Config) {
-  if (isLayerSpec(spec)) {
-    return normalizeLayer(spec, config);
-  }
-  if (isRepeatSpec(spec)) {
-    return normalizeRepeat(spec, config);
-  }
-  return normalizeNonFacetUnit(spec, config);
-}
-
-
 function normalizeFacet(spec: GenericFacetSpec<CompositeUnitSpec>, config: Config): FacetSpec {
   const {spec: subspec, ...rest} = spec;
   return {
     ...rest,
-    spec: normalizeNonFacet(subspec, config)
+    spec: normalize(subspec, config)
   };
 }
 
@@ -274,7 +248,7 @@ function normalizeRepeat(spec: GenericRepeatSpec<CompositeUnitSpec>, config: Con
   const {spec: subspec, ...rest} = spec;
   return {
     ...rest,
-    spec: normalizeNonFacetWithRepeat(subspec, config)
+    spec: normalize(subspec, config)
   };
 }
 
@@ -282,7 +256,7 @@ function normalizeVConcat(spec: GenericVConcatSpec<CompositeUnitSpec>, config: C
   const {vconcat: vconcat, ...rest} = spec;
   return {
     ...rest,
-    vconcat: vconcat.map((subspec) => normalizeNonFacet(subspec, config))
+    vconcat: vconcat.map((subspec) => normalize(subspec, config))
   };
 }
 
@@ -290,7 +264,7 @@ function normalizeHConcat(spec: GenericHConcatSpec<CompositeUnitSpec>, config: C
   const {hconcat: hconcat, ...rest} = spec;
   return {
     ...rest,
-    hconcat: hconcat.map((subspec) => normalizeNonFacet(subspec, config))
+    hconcat: hconcat.map((subspec) => normalize(subspec, config))
   };
 }
 
