@@ -6,13 +6,13 @@ import {VgScale} from '../../vega.schema';
 import {Model} from '../model';
 import {Explicit, mergeValuesWithExplicit} from '../split';
 import {UnitModel} from '../unit';
-import {ScaleComponent, ScaleComponentIndex} from './component';
+import {ScaleComponent, ScaleComponentIndex, ScaleComponentProps} from './component';
 import {parseScaleDomain} from './domain';
 import {parseScaleProperty} from './properties';
 import {parseScaleRange} from './range';
 import {scaleType} from './type';
 
-export const NON_TYPE_DOMAIN_RANGE_VEGA_SCALE_PROPERTIES: (keyof (Scale | VgScale))[] = [
+export const NON_TYPE_DOMAIN_RANGE_VEGA_SCALE_PROPERTIES: (keyof (Scale | ScaleComponentProps))[] = [
   'round',
   // quantitative / time
   'clamp', 'nice',
