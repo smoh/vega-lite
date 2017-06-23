@@ -90,12 +90,12 @@ function parseNonUnitScaleDomain(model: Model) {
     if (model instanceof FacetModel) {
       // Replace the scale domain with data output from a cloned subtree after the facet.
       if (isDataRefDomain(domain) || isFieldRefUnionDomain(domain)) {
-        domain.data = FACET_SCALE_PREFIX + model.getName(domain.data);
+        domain.data = FACET_SCALE_PREFIX + domain.data.replace(FACET_SCALE_PREFIX, '');
       } else if (isDataRefUnionedDomain(domain)) {
         domain.fields = domain.fields.map((f: VgDataRef) => {
           return {
             ...f,
-            data: FACET_SCALE_PREFIX + model.getName(f.data)
+            data: FACET_SCALE_PREFIX + f.data.replace(FACET_SCALE_PREFIX, '')
           };
         });
       }
