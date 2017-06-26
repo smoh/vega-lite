@@ -7,7 +7,7 @@ import {ScaleType} from '../scale';
 import {isConcatSpec, isFacetSpec, isLayerSpec, isRepeatSpec, isUnitSpec, LayoutSize, Spec} from '../spec';
 import {TimeUnit} from '../timeunit';
 import {formatExpression} from '../timeunit';
-import {QUANTITATIVE, TEMPORAL} from '../type';
+import {ORDINAL, QUANTITATIVE, TEMPORAL} from '../type';
 import {duplicate, isArray} from '../util';
 import {VgEncodeEntry, VgSort} from '../vega.schema';
 import {ConcatModel} from './concat';
@@ -136,7 +136,7 @@ export function formatSignalRef(fieldDef: FieldDef<string>, specifiedFormat: str
  * @param format explicitly specified format
  */
 export function numberFormat(fieldDef: FieldDef<string>, specifiedFormat: string, config: Config) {
-  if (fieldDef.type === QUANTITATIVE || fieldDef.type === TEMPORAL) {
+  if (fieldDef.type === QUANTITATIVE || fieldDef.type === ORDINAL) {
     // add number format for quantitative type only
 
     // Specified format in axis/legend has higher precedence than fieldDef.format

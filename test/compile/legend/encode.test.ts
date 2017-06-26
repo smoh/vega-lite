@@ -82,7 +82,7 @@ describe('compile/legend', function() {
       });
       const fieldDef = {field: 'a', type: ORDINAL, formatType: "number", legend: {format: "d"}};
       const label = encode.labels(fieldDef, {}, model, COLOR);
-      assert.deepEqual(label, {text: {signal: `format(a, 'undefined')`}});
+      assert.deepEqual(label, {text: {signal: `format(a, 'd')`}});
     });
 
     it('should return correct expression when you want to format the legend in a time format', () => {
